@@ -15,7 +15,6 @@ export const getCircularReplacer = () => {
 
 export const getTestnetURL = () => {
   const testnet = process.env.TESTNET
-  console.log(`Testnet: ${testnet}`)
   if (testnet === 'preprod') {
     console.log('--> preprod')
     return PREPROD_URL

@@ -1,6 +1,5 @@
 import supertest from 'supertest'
 import {assert} from 'chai'
-import {PREPROD_URL, PREVIEW_URL} from './constants.js'
 import {getTestnetURL} from './helpers.js'
 
 const request = supertest(getTestnetURL())
