@@ -1,5 +1,6 @@
 import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs'
 import {generateMnemonic, mnemonicToEntropy} from 'bip39'
+import {ChainDerivations} from './constants.js'
 
 /** Generate a random mnemonic based on 160-bits of entropy (15 words) */
 export const generateWalletRecoveryPhrase = async () => {
@@ -7,11 +8,14 @@ export const generateWalletRecoveryPhrase = async () => {
 }
 
 export const getAddrFromPrivateKey = (privateKey, stakeKey) => {
-  const publicKey = privateKey.to_public()
+  const accKey = getAccountKey(privateKey)
+  const extKey = getExternalPrivateKey(accKey)
+
+  const publicKey = extKey.to_public()
   console.log(`Public key: ${publicKey.to_bech32()}`)
 
   const addr = CardanoWasm.BaseAddress.new(
-    CardanoWasm.NetworkInfo.testnet_preprod().network_id(),
+    CardanoWasm.NetworkInfo.testnet_preprod().network_id(), // change it, necessary to switch between preprod and preview
     CardanoWasm.StakeCredential.from_keyhash(publicKey.to_raw_key().hash()),
     CardanoWasm.StakeCredential.from_keyhash(stakeKey.to_raw_key().hash()),
   ).to_address()
@@ -34,7 +38,11 @@ export const getAccountKey = (rootKey) => {
 }
 
 export const getStakeKey = (accKey) => {
-  return accKey.derive(2).derive(0).to_public()
+  return accKey.derive(ChainDerivations.CHIMERIC_ACCOUNT).derive(0).to_public()
+}
+
+export const getExternalPrivateKey = (accKey, index = 0) => {
+  return accKey.derive(ChainDerivations.EXTERNAL).derive(index)
 }
 
 export const harden = (num) => {
