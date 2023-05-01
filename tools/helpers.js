@@ -1,4 +1,4 @@
-import {PREPROD_URL, PREVIEW_URL} from './constants.js'
+import {PREPROD_URL, PREVIEW_URL} from '../constants.js'
 
 export const getCircularReplacer = () => {
   const seen = new WeakSet()

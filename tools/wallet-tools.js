@@ -7,12 +7,12 @@ export const generateWalletRecoveryPhrase = async () => {
   return generateMnemonic(160)
 }
 
-export const getAddrFromPrivateKey = (privateKey, stakeKey) => {
+export const getExternalAddrFromPrivateKey = (privateKey, stakeKey) => {
   const accKey = getAccountKey(privateKey)
   const extKey = getExternalPrivateKey(accKey)
 
   const publicKey = extKey.to_public()
-  console.log(`Public key: ${publicKey.to_bech32()}`)
+  console.log(`Public external key: ${publicKey.to_bech32()}`)
 
   const addr = CardanoWasm.BaseAddress.new(
     CardanoWasm.NetworkInfo.testnet_preprod().network_id(), // change it, necessary to switch between preprod and preview
@@ -20,7 +20,25 @@ export const getAddrFromPrivateKey = (privateKey, stakeKey) => {
     CardanoWasm.StakeCredential.from_keyhash(stakeKey.to_raw_key().hash()),
   ).to_address()
 
-  console.log(`Base address: ${addr.to_bech32()}`)
+  console.log(`External address: ${addr.to_bech32()}`)
+
+  return addr
+}
+
+export const getInternalAddrFromPrivateKey = (privateKey, stakeKey) => {
+  const accKey = getAccountKey(privateKey)
+  const internalKey = getInternalPrivateKey(accKey)
+
+  const publicKey = internalKey.to_public()
+  console.log(`Public internal key: ${internalKey.to_bech32()}`)
+
+  const addr = CardanoWasm.BaseAddress.new(
+    CardanoWasm.NetworkInfo.testnet_preprod().network_id(), // change it, necessary to switch between preprod and preview
+    CardanoWasm.StakeCredential.from_keyhash(publicKey.to_raw_key().hash()),
+    CardanoWasm.StakeCredential.from_keyhash(stakeKey.to_raw_key().hash()),
+  ).to_address()
+
+  console.log(`Internal address: ${addr.to_bech32()}`)
 
   return addr
 }
@@ -43,6 +61,10 @@ export const getStakeKey = (accKey) => {
 
 export const getExternalPrivateKey = (accKey, index = 0) => {
   return accKey.derive(ChainDerivations.EXTERNAL).derive(index)
+}
+
+export const getInternalPrivateKey = (accKey, index = 263) => {
+  return accKey.derive(ChainDerivations.INTERNAL).derive(index)
 }
 
 export const harden = (num) => {
