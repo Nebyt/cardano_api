@@ -13,3 +13,11 @@ export const getUtxos = async (addr, lastBlock) => {
 export const getBestBlock = async () => {
   return (await axios.get(`${PREPROD_URL}/v2/bestblock`)).data
 }
+
+export const getPoolInfo = async (poolHashes) => {
+  return (
+    await axios.post(`${PREPROD_URL}/pool/info`, {
+      poolIds: poolHashes,
+    })
+  ).data
+}
