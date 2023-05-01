@@ -2,13 +2,9 @@ import Joi from 'joi'
 
 export const pricesSchema = Joi.object({
   ticker: Joi.object({
-    from: Joi.string()
-      .pattern(/^ADA$/)
-      .required(),
+    from: Joi.string().valid('ADA').required(),
     timestamp: Joi.date().timestamp().required(),
-    signature: Joi.string()
-      .pattern(/^[a-z0-9]+$/)
-      .required(),
+    signature: Joi.string().hex().required(),
     prices: Joi.object({
       BRL: Joi.number().required(),
       BTC: Joi.number().required(),
