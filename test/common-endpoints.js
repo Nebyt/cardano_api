@@ -1,11 +1,10 @@
 import supertest from 'supertest'
 import {assert} from 'chai'
 import Joi from 'joi'
-import {getTestnetURL} from '../tools/helpers.js'
+import {getPoolBasedOnNetwork, getTestnetURL} from '../tools/helpers.js'
 import {fundInfoSchema} from '../schemas/fundInfo-joi.js'
 import {pricesSchema} from '../schemas/prices-joi.js'
 import {poolInfoSchema} from '../schemas/poolInfo-joi.js'
-import {POOL_APEX_CARDANO_HASH} from '../constants.js'
 
 const request = supertest(getTestnetURL())
 
@@ -31,7 +30,8 @@ describe('Common API', () => {
       })
   })
   it('POST /pool/info', () => {
-    const payload = {poolIds: [POOL_APEX_CARDANO_HASH]}
+    const poolHash = getPoolBasedOnNetwork()
+    const payload = {poolIds: [poolHash]}
     return request
       .post('/pool/info')
       .send(payload)
@@ -39,7 +39,7 @@ describe('Common API', () => {
       .expect(200)
       .then((res) => {
         assert.isNotEmpty(res.body)
-        Joi.assert(res.body[POOL_APEX_CARDANO_HASH], poolInfoSchema)
+        Joi.assert(res.body[poolHash], poolInfoSchema)
       })
   })
 })
