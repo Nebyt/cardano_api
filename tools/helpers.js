@@ -1,4 +1,4 @@
-import {PREPROD_URL, PREVIEW_URL} from '../constants.js'
+import {PREPROD_URL, PREVIEW_URL, POOL_1_PREPROD_HASH, POOL_1_PREVIEW_HASH} from '../constants.js'
 
 export const getCircularReplacer = () => {
   const seen = new WeakSet()
@@ -16,12 +16,28 @@ export const getCircularReplacer = () => {
 export const getTestnetURL = () => {
   const testnet = process.env.TESTNET
   if (testnet === 'preprod') {
-    console.log('--> preprod')
     return PREPROD_URL
   } else if (testnet === 'preview') {
-    console.log('--> preview')
     return PREVIEW_URL
   } else {
     throw new Error('Unknown testnet network')
   }
+}
+
+export const isPreprod = () => {
+  const testnet = process.env.TESTNET
+  if (testnet === 'preprod') {
+    return true
+  } else if (testnet === 'preview') {
+    return false
+  } else {
+    throw new Error('Unknown testnet network')
+  }
+}
+
+export const getPoolBasedOnNetwork = () => {
+  if (isPreprod()) {
+    return POOL_1_PREPROD_HASH
+  }
+  return POOL_1_PREVIEW_HASH
 }
