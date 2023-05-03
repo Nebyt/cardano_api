@@ -18,26 +18,30 @@ import {rewardHistorySchema} from '../schemas/rewardHistory-joi.js'
 
 const request = supertest(getTestnetURL())
 
-describe('Tx related API', function () {
-  it('GET /v2/bestblock', function () {
-    // Make a GET request to the bestblock route
-    return request
-      .get('/v2/bestblock')
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .then((res) => {
-        // assert data being return to not be empty
-        assert.isNotEmpty(res.body)
-        Joi.assert(res.body, blockSchema)
-      })
-  })
+const getWalletKeys = (recoveryPhraseString) => {
+  const privateKey = getRootKeyFromMnemonic(recoveryPhraseString)
+  const accountKey = getAccountKey(privateKey)
+  const stakeKey = getStakeKey(accountKey)
 
+  return {privateKey, accountKey, stakeKey}
+}
+
+const getNewWalletRewardAddr = async() => {
+  const newRecoveryPhrase = await generateWalletRecoveryPhrase()
+  const {stakeKey} = getWalletKeys(newRecoveryPhrase)
+
+  return getRewardAddr(stakeKey)
+}
+
+const getRewardAddrFromRecoveryPhrase = (recoveryPhraseString) => {
+  const {stakeKey} = getWalletKeys(recoveryPhraseString)
+
+  return getRewardAddr(stakeKey)
+}
+
+describe('Account API', function () {
   it('POST /account/state, new empty wallet', async function () {
-    const newRecoveryPhrase = await generateWalletRecoveryPhrase()
-    const privateKey = getRootKeyFromMnemonic(newRecoveryPhrase)
-    const accountKey = getAccountKey(privateKey)
-    const stakeKey = getStakeKey(accountKey)
-    const rewardAddress = getRewardAddr(stakeKey)
+    const rewardAddress = await getNewWalletRewardAddr()
 
     // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
@@ -54,10 +58,7 @@ describe('Tx related API', function () {
   })
 
   it('POST /account/state, delegated wallet', function () {
-    const privateKey = getRootKeyFromMnemonic(WALLET_DELEGATED)
-    const accountKey = getAccountKey(privateKey)
-    const stakeKey = getStakeKey(accountKey)
-    const rewardAddress = getRewardAddr(stakeKey)
+    const rewardAddress = getRewardAddrFromRecoveryPhrase(WALLET_DELEGATED)
 
     // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
@@ -98,11 +99,7 @@ describe('Tx related API', function () {
   })
 
   it('POST /account/state, wrong payload, bech32 instead of hex', async function () {
-    const newRecoveryPhrase = await generateWalletRecoveryPhrase()
-    const privateKey = getRootKeyFromMnemonic(newRecoveryPhrase)
-    const accountKey = getAccountKey(privateKey)
-    const stakeKey = getStakeKey(accountKey)
-    const rewardAddress = getRewardAddr(stakeKey)
+    const rewardAddress = await getNewWalletRewardAddr()
 
     const rewardAddrHex = rewardAddress.to_bech32()
     const payload = {addresses: [rewardAddrHex]}
@@ -117,24 +114,8 @@ describe('Tx related API', function () {
       })
   })
 
-  it('GET /v2/tipStatus', function () {
-    // Make a GET request to the bestblock route
-    return request
-      .get('/v2/tipStatus')
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .then((res) => {
-        assert.isNotEmpty(res.body)
-        Joi.assert(res.body, tipStatusSchema)
-      })
-  })
-
   it('POST /account/rewardHistory, new empty wallet', async function () {
-    const newRecoveryPhrase = await generateWalletRecoveryPhrase()
-    const privateKey = getRootKeyFromMnemonic(newRecoveryPhrase)
-    const accountKey = getAccountKey(privateKey)
-    const stakeKey = getStakeKey(accountKey)
-    const rewardAddress = getRewardAddr(stakeKey)
+    const rewardAddress = await getNewWalletRewardAddr()
 
     // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
@@ -151,11 +132,8 @@ describe('Tx related API', function () {
       })
   })
 
-  it('POST /account/rewardHistory, delegated wallet', async function () {
-    const privateKey = getRootKeyFromMnemonic(WALLET_DELEGATED)
-    const accountKey = getAccountKey(privateKey)
-    const stakeKey = getStakeKey(accountKey)
-    const rewardAddress = getRewardAddr(stakeKey)
+  it('POST /account/rewardHistory, delegated wallet, hex', function () {
+    const rewardAddress = getRewardAddrFromRecoveryPhrase(WALLET_DELEGATED)
 
     // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
@@ -172,11 +150,8 @@ describe('Tx related API', function () {
       })
   })
 
-  it('POST /account/rewardHistory, delegated wallet, bech32', async function () {
-    const privateKey = getRootKeyFromMnemonic(WALLET_DELEGATED)
-    const accountKey = getAccountKey(privateKey)
-    const stakeKey = getStakeKey(accountKey)
-    const rewardAddress = getRewardAddr(stakeKey)
+  it('POST /account/rewardHistory, delegated wallet, bech32', function () {
+    const rewardAddress = getRewardAddrFromRecoveryPhrase(WALLET_DELEGATED)
 
     // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_bech32()
@@ -218,7 +193,33 @@ describe('Tx related API', function () {
   })
 })
 
-// POST /account/rewardHistory {addresses:[...]}
+describe('Tx related API', function () {
+  it('GET /v2/bestblock', function () {
+    // Make a GET request to the bestblock route
+    return request
+      .get('/v2/bestblock')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .then((res) => {
+        // assert data being return to not be empty
+        assert.isNotEmpty(res.body)
+        Joi.assert(res.body, blockSchema)
+      })
+  })
+
+  it('GET /v2/tipStatus', function () {
+    // Make a GET request to the bestblock route
+    return request
+      .get('/v2/tipStatus')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .then((res) => {
+        assert.isNotEmpty(res.body)
+        Joi.assert(res.body, tipStatusSchema)
+      })
+  })
+})
+
 // POST /v2/addresses/filterUsed {addresses:[...]}
 // POST /v2/tipStatus {reference: {bestBlocks: [...]}}
 // POST /v2/txs/utxoDiffSincePoint {addresses: [...], afterBestblocks: [...], diffLimit: 50, untilBlockHash: "..."}
