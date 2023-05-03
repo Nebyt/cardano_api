@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "test-preprod": "env TESTNET=preprod mocha",
-    "test-preview": "env TESTNET=preview mocha"
+    "test-preview": "env TESTNET=preview mocha",
+    "test-preprod-run-one": "env TESTNET=preprod mocha -g",
+    "test-preview-run-one": "env TESTNET=preview mocha -g"
   },
   "repository": {
     "type": "git",
