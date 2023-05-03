@@ -11,7 +11,8 @@ import {
 import {WALLET_DELEGATED} from '../constants.js'
 import {getTestnetURL} from '../tools/helpers.js'
 import {accountStateSchema} from '../schemas/accountState-joi.js'
-import {bestBlockSchema} from '../schemas/bestblock-joi.js'
+import {blockSchema} from '../schemas/block-joi.js'
+import {tipStatusSchema} from '../schemas/tipStatus-joi.js'
 import {invalidHexadecimalDigitSchema, noAddressesSchema} from '../schemas/errors-joi.js'
 
 const request = supertest(getTestnetURL())
@@ -26,9 +27,10 @@ describe('Tx related API', function () {
       .then((res) => {
         // assert data being return to not be empty
         assert.isNotEmpty(res.body)
-        Joi.assert(res.body, bestBlockSchema)
+        Joi.assert(res.body, blockSchema)
       })
   })
+
   it('POST /account/state, new empty wallet', async function () {
     const newRecoveryPhrase = await generateWalletRecoveryPhrase()
     const privateKey = getRootKeyFromMnemonic(newRecoveryPhrase)
@@ -113,11 +115,22 @@ describe('Tx related API', function () {
         Joi.assert(res.body, invalidHexadecimalDigitSchema)
       })
   })
+
+  it('GET /v2/tipStatus', function () {
+    // Make a GET request to the bestblock route
+    return request
+      .get('/v2/tipStatus')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .then((res) => {
+        assert.isNotEmpty(res.body)
+        Joi.assert(res.body, tipStatusSchema)
+      })
+  })
 })
 
 // POST /account/rewardHistory {addresses:[...]}
 // POST /v2/addresses/filterUsed {addresses:[...]}
 // POST /v2/tipStatus {reference: {bestBlocks: [...]}}
-// GET /v2/tipStatus
 // POST /v2/txs/utxoDiffSincePoint {addresses: [...], afterBestblocks: [...], diffLimit: 50, untilBlockHash: "..."}
 // POST /v2/txs/history {addresses: [...], after: {block: "...", tx: "..."}, untilBlock: "..."}
