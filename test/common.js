@@ -5,11 +5,12 @@ import {getPoolBasedOnNetwork, getTestnetURL} from '../tools/helpers.js'
 import {fundInfoSchema} from '../schemas/fundInfo-joi.js'
 import {pricesSchema} from '../schemas/prices-joi.js'
 import {poolInfoSchema} from '../schemas/poolInfo-joi.js'
+import {serverStatusSchema} from '../schemas/serverStatus-joi.js'
 
 const request = supertest(getTestnetURL())
 
 describe('Common API', () => {
-  it('GET /v0/catalyst/fundInfo', () => {
+  it('GET /v0/catalyst/fundInfo', function () {
     return request
       .get('/v0/catalyst/fundInfo')
       .expect('Content-Type', /json/)
@@ -19,7 +20,7 @@ describe('Common API', () => {
         Joi.assert(res.body, fundInfoSchema)
       })
   })
-  it('GET /price/ADA/current', () => {
+  it('GET /price/ADA/current', function () {
     return request
       .get('/price/ADA/current')
       .expect('Content-Type', /json/)
@@ -29,7 +30,7 @@ describe('Common API', () => {
         Joi.assert(res.body, pricesSchema)
       })
   })
-  it('POST /pool/info', () => {
+  it('POST /pool/info', function () {
     const poolHash = getPoolBasedOnNetwork()
     const payload = {poolIds: [poolHash]}
     return request
@@ -40,6 +41,19 @@ describe('Common API', () => {
       .then((res) => {
         assert.isNotEmpty(res.body)
         Joi.assert(res.body[poolHash], poolInfoSchema)
+      })
+  })
+
+  it('GET /status', function () {
+    const curTime = Date.now()
+    return request
+      .get('/status')
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .then((res) => {
+        assert.isNotEmpty(res.body)
+        Joi.assert(res.body, serverStatusSchema)
+        assert.isAtLeast(res.body.serverTime, curTime)
       })
   })
 })
