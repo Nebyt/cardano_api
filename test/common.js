@@ -3,7 +3,7 @@ import {assert} from 'chai'
 import Joi from 'joi'
 import {getPoolBasedOnNetwork, getTestnetURL} from '../tools/helpers.js'
 import {fundInfoSchema} from '../schemas/fundInfo-joi.js'
-import {pricesSchema} from '../schemas/prices-joi.js'
+import {currentPriceSchema, timestampPricesSchema} from '../schemas/prices-joi.js'
 import {poolInfoSchema} from '../schemas/poolInfo-joi.js'
 import {serverStatusSchema} from '../schemas/serverStatus-joi.js'
 
@@ -20,6 +20,7 @@ describe('Common API', () => {
         Joi.assert(res.body, fundInfoSchema)
       })
   })
+
   it('GET /price/ADA/current', function () {
     return request
       .get('/price/ADA/current')
@@ -27,9 +28,22 @@ describe('Common API', () => {
       .expect(200)
       .then((res) => {
         assert.isNotEmpty(res.body)
-        Joi.assert(res.body, pricesSchema)
+        Joi.assert(res.body, currentPriceSchema)
       })
   })
+
+  const currentTime = Date.now()
+  it(`GET /price/ADA/${currentTime}`, function () {
+    return request
+      .get(`/price/ADA/${currentTime}`)
+      .expect('Content-Type', /json/)
+      .expect(200)
+      .then((res) => {
+        assert.isNotEmpty(res.body)
+        Joi.assert(res.body, timestampPricesSchema)
+      })
+  })
+
   it('POST /pool/info', function () {
     const poolHash = getPoolBasedOnNetwork()
     const payload = {poolIds: [poolHash]}
