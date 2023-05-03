@@ -36,5 +36,3 @@ describe('Tx related API', function () {
 
 // POST /v2/addresses/filterUsed {addresses:[...]}
 // POST /v2/tipStatus {reference: {bestBlocks: [...]}}
-// POST /v2/txs/utxoDiffSincePoint {addresses: [...], afterBestblocks: [...], diffLimit: 50, untilBlockHash: "..."}
-// POST /v2/txs/history {addresses: [...], after: {block: "...", tx: "..."}, untilBlock: "..."}
