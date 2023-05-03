@@ -73,3 +73,11 @@ export const getInternalPrivateKey = (accKey, index = 0) => {
 export const harden = (num) => {
   return 0x80000000 + num
 }
+
+export const getWalletKeys = (recoveryPhraseString) => {
+  const privateKey = getRootKeyFromMnemonic(recoveryPhraseString)
+  const accountKey = getAccountKey(privateKey)
+  const stakeKey = getStakeKey(accountKey)
+
+  return {privateKey, accountKey, stakeKey}
+}

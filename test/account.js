@@ -1,32 +1,16 @@
 import supertest from 'supertest'
 import {assert} from 'chai'
 import Joi from 'joi'
-import {
-  generateWalletRecoveryPhrase,
-  getRootKeyFromMnemonic,
-  getAccountKey,
-  getStakeKey,
-  getRewardAddr,
-} from '../tools/wallet-tools.js'
 import {WALLET_DELEGATED} from '../constants.js'
 import {getTestnetURL} from '../tools/helpers.js'
+import {generateWalletRecoveryPhrase, getRewardAddr, getWalletKeys} from '../tools/wallet-tools.js'
 import {accountStateSchema} from '../schemas/accountState-joi.js'
-import {blockSchema} from '../schemas/block-joi.js'
-import {tipStatusSchema} from '../schemas/tipStatus-joi.js'
 import {invalidHexadecimalDigitSchema, noAddressesSchema} from '../schemas/errors-joi.js'
 import {rewardHistorySchema} from '../schemas/rewardHistory-joi.js'
 
 const request = supertest(getTestnetURL())
 
-const getWalletKeys = (recoveryPhraseString) => {
-  const privateKey = getRootKeyFromMnemonic(recoveryPhraseString)
-  const accountKey = getAccountKey(privateKey)
-  const stakeKey = getStakeKey(accountKey)
-
-  return {privateKey, accountKey, stakeKey}
-}
-
-const getNewWalletRewardAddr = async() => {
+const getNewWalletRewardAddr = async () => {
   const newRecoveryPhrase = await generateWalletRecoveryPhrase()
   const {stakeKey} = getWalletKeys(newRecoveryPhrase)
 
@@ -43,7 +27,6 @@ describe('Account API', function () {
   it('POST /account/state, new empty wallet', async function () {
     const rewardAddress = await getNewWalletRewardAddr()
 
-    // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
     const payload = {addresses: [rewardAddrHex]}
     return request
@@ -60,7 +43,6 @@ describe('Account API', function () {
   it('POST /account/state, delegated wallet', function () {
     const rewardAddress = getRewardAddrFromRecoveryPhrase(WALLET_DELEGATED)
 
-    // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
     const payload = {addresses: [rewardAddrHex]}
     return request
@@ -192,35 +174,3 @@ describe('Account API', function () {
       })
   })
 })
-
-describe('Tx related API', function () {
-  it('GET /v2/bestblock', function () {
-    // Make a GET request to the bestblock route
-    return request
-      .get('/v2/bestblock')
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .then((res) => {
-        // assert data being return to not be empty
-        assert.isNotEmpty(res.body)
-        Joi.assert(res.body, blockSchema)
-      })
-  })
-
-  it('GET /v2/tipStatus', function () {
-    // Make a GET request to the bestblock route
-    return request
-      .get('/v2/tipStatus')
-      .expect('Content-Type', /json/)
-      .expect(200)
-      .then((res) => {
-        assert.isNotEmpty(res.body)
-        Joi.assert(res.body, tipStatusSchema)
-      })
-  })
-})
-
-// POST /v2/addresses/filterUsed {addresses:[...]}
-// POST /v2/tipStatus {reference: {bestBlocks: [...]}}
-// POST /v2/txs/utxoDiffSincePoint {addresses: [...], afterBestblocks: [...], diffLimit: 50, untilBlockHash: "..."}
-// POST /v2/txs/history {addresses: [...], after: {block: "...", tx: "..."}, untilBlock: "..."}
