@@ -3,7 +3,7 @@ import {generateMnemonic, mnemonicToEntropy} from 'bip39'
 import {ChainDerivations} from '../constants.js'
 
 /** Generate a random mnemonic based on 160-bits of entropy (15 words) */
-export const generateWalletRecoveryPhrase = async () => {
+export const generateWalletRecoveryPhrase = () => {
   return generateMnemonic(160)
 }
 

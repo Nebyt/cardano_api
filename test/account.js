@@ -10,8 +10,8 @@ import {rewardHistorySchema} from '../schemas/rewardHistory-joi.js'
 
 const request = supertest(getTestnetURL())
 
-const getNewWalletRewardAddr = async () => {
-  const newRecoveryPhrase = await generateWalletRecoveryPhrase()
+const getNewWalletRewardAddr = () => {
+  const newRecoveryPhrase = generateWalletRecoveryPhrase()
   const {stakeKey} = getWalletKeys(newRecoveryPhrase)
 
   return getRewardAddr(stakeKey)
@@ -24,8 +24,8 @@ const getRewardAddrFromRecoveryPhrase = (recoveryPhraseString) => {
 }
 
 describe('Account API', function () {
-  it('POST /account/state, new empty wallet', async function () {
-    const rewardAddress = await getNewWalletRewardAddr()
+  it('POST /account/state, new empty wallet', function () {
+    const rewardAddress = getNewWalletRewardAddr()
 
     const rewardAddrHex = rewardAddress.to_hex()
     const payload = {addresses: [rewardAddrHex]}
@@ -80,8 +80,8 @@ describe('Account API', function () {
       })
   })
 
-  it('POST /account/state, wrong payload, bech32 instead of hex', async function () {
-    const rewardAddress = await getNewWalletRewardAddr()
+  it('POST /account/state, wrong payload, bech32 instead of hex', function () {
+    const rewardAddress = getNewWalletRewardAddr()
 
     const rewardAddrHex = rewardAddress.to_bech32()
     const payload = {addresses: [rewardAddrHex]}
@@ -96,8 +96,8 @@ describe('Account API', function () {
       })
   })
 
-  it('POST /account/rewardHistory, new empty wallet', async function () {
-    const rewardAddress = await getNewWalletRewardAddr()
+  it('POST /account/rewardHistory, new empty wallet', function () {
+    const rewardAddress = getNewWalletRewardAddr()
 
     // In case the payload is incorrect, e.g. the addresses are not in hex or it is not array the error 500 is returned
     const rewardAddrHex = rewardAddress.to_hex()
