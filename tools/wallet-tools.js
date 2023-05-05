@@ -1,6 +1,6 @@
 import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs'
 import {generateMnemonic, mnemonicToEntropy} from 'bip39'
-import {ChainDerivations} from '../constants.js'
+import {ChainDerivations, Bech32Prefix} from '../constants.js'
 
 /** Generate a random mnemonic based on 160-bits of entropy (15 words) */
 export const generateWalletRecoveryPhrase = () => {
@@ -80,4 +80,10 @@ export const getWalletKeys = (recoveryPhraseString) => {
   const stakeKey = getStakeKey(accountKey)
 
   return {privateKey, accountKey, stakeKey}
+}
+
+export const getVerifiedKeyHashBech = (addressObject) => {
+  const keyHash = CardanoWasm.BaseAddress.from_address(addressObject).payment_cred().to_keyhash()
+
+  return keyHash.to_bech32(Bech32Prefix.PAYMENT_KEY_HASH)
 }
